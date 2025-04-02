@@ -11,8 +11,5 @@
   "vue.inlayHints.optionsWrapper": true,
   "vue.complete.casing.props": "kebab",
   "vue.splitEditors.icon": true,
-  "vue.updateImportsOnFileMove.enabled": true,
-  "[vue]": {
-    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
-  }
+  "vue.updateImportsOnFileMove.enabled": true
 }

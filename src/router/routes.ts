@@ -8,7 +8,11 @@ export const routes = [
   {
     path: '/status',
     name: 'status-list',
-    component: () =>
-      import(/* webpackChunkName: "status" */ '@/pages/status/StatusListPage.vue')
+    component: () => import(/* webpackChunkName: "status" */ '@/pages/status/StatusListPage.vue')
+  },
+  {
+    path: '/status/insert',
+    name: 'status-insert',
+    component: () => import(/* webpackChunkName: "status" */ '@/pages/status/StatusFormPage.vue')
   }
 ]

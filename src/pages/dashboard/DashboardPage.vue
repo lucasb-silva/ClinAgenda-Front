@@ -2,12 +2,10 @@
 import { DefaultTemplate } from '@/template'
 </script>
 
-
 <template>
   <DefaultTemplate>
     <template #default>
       <div class="dashboard">
-        <!-- 
         <svg
           xmlns="http://www.w3.org/2000/svg"
           xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -945,7 +943,6 @@ import { DefaultTemplate } from '@/template'
             fill="rgb(var(--v-theme-primary))"
           />
         </svg>
-        -->
       </div>
     </template>
   </DefaultTemplate>
