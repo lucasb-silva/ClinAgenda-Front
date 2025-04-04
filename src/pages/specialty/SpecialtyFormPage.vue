@@ -84,10 +84,10 @@
         <v-col cols="6">
           <v-text-field v-model.trim="form.name" label="Nome" hide-details />
         </v-col>
-        <v-col cols="6">
+        <v-col cols="2">
           <v-text-field v-model.trim="form.scheduleDuration" label="Duração da consulta" hide-details />
         </v-col>
       </v-row>
     </v-form>
-  </default-template>
+</default-template>
 </template>
