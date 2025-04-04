@@ -2,13 +2,17 @@
 import { ref } from 'vue'
 import { DefaultTemplate } from '@/template'
 import { mdiPlusCircle, mdiTrashCan } from '@mdi/js'
-import type { ISpecialty, GetSpecialtyListRequest, GetSpecialtyListResponse } from '@/interfaces/specialty'
+import type {
+  ISpecialty,
+  GetSpecialtyListRequest,
+  GetSpecialtyListResponse
+} from '@/interfaces/specialty'
 import request from '@/engine/httpClient'
 import { useToastStore } from '@/stores'
 
 const toastStore = useToastStore()
-
 const isLoadingList = ref<boolean>(false)
+const filterName = ref<GetSpecialtyListRequest['name']>('')
 const itemsPerPage = ref<number>(10)
 const total = ref<number>(0)
 const page = ref<number>(1)
@@ -23,7 +27,7 @@ const headers = [
     cellProps: { class: 'text-no-wrap' }
   },
   { title: 'Nome', key: 'name', sortable: false },
-  { title: 'Duração da consulta', key: 'scheduleDuration', sortable: false },
+  { title: 'Duração', key: 'scheduleDuration', sortable: false },
   {
     title: 'Ações',
     key: 'actions',
@@ -46,7 +50,8 @@ const loadDataTable = async () => {
     endpoint: 'specialty/list',
     body: {
       itemsPerPage: itemsPerPage.value,
-      page: page.value
+      page: page.value,
+      name: filterName.value
     }
   })
 
@@ -62,37 +67,46 @@ const deleteListItem = async (item: ISpecialty) => {
 
   if (!shouldDelete) return
 
-  try {
-    const response = await request<null, null>({
-      method: 'DELETE',
-      endpoint: `specialty/delete/${item.id}`
-    })
+  const response = await request<null, null>({
+    method: 'DELETE',
+    endpoint: `specialty/delete/${item.id}`
+  })
 
-    if (response.isError) return
+  if (response.isError) return
 
-    toastStore.setToast({
-      type: 'success',
-      text: 'Especialidade deletada com sucesso!'
-    })
+  toastStore.setToast({
+    type: 'success',
+    text: 'Especialidade deletada com sucesso!'
+  })
 
-    loadDataTable()
-  } catch (e) {
-    console.error('Falha ao deletar item da lista', e)
-  }
+  loadDataTable()
 }
 </script>
 
 <template>
   <default-template>
-    
     <template #title> Lista de especialidades </template>
+
     <template #action>
-      <v-btn color="secondary" :prepend-icon="mdiPlusCircle" :to="{ name: 'specialty-insert' }">
-        Adicionar Especialidade
+      <v-btn color="primary" :prepend-icon="mdiPlusCircle" :to="{ name: 'specialty-insert' }">
+        Adicionar especialidade
       </v-btn>
     </template>
-    
+
     <template #default>
+      <v-sheet class="pa-4 mb-4">
+        <v-form @submit.prevent="loadDataTable">
+          <v-row>
+            <v-col>
+              <v-text-field v-model.trim="filterName" label="Nome" hide-details />
+            </v-col>
+            <v-col cols="auto" class="d-flex align-center">
+              <v-btn color="primary" type="submit">Filtrar</v-btn>
+            </v-col>
+          </v-row>
+        </v-form>
+      </v-sheet>
+
       <v-data-table-server
         v-model:items-per-page="itemsPerPage"
         :headers="headers"
@@ -102,6 +116,7 @@ const deleteListItem = async (item: ISpecialty) => {
         item-value="id"
         @update:options="handleDataTableUpdate"
       >
+        <template #[`item.scheduleDuration`]="{ item }"> {{ item.scheduleDuration }} min </template>
         <template #[`item.actions`]="{ item }">
           <v-tooltip text="Deletar especialidade" location="left">
             <template #activator="{ props }">
