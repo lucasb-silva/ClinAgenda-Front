@@ -81,7 +81,7 @@ const deleteListItem = async (item: IStatus) => {
     <template #title> Lista de status </template>
 
     <template #action>
-      <v-btn color="primary" :prepend-icon="mdiPlusCircle" :to="{ name: 'status-insert' }">
+      <v-btn color="secondary" :prepend-icon="mdiPlusCircle" :to="{ name: 'status-insert' }">
         Adicionar Status
       </v-btn>
     </template>

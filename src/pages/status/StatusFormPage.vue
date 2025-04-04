@@ -73,7 +73,7 @@
 
     <template #action>
       <v-btn :prepend-icon="mdiCancel" :to="{ name: 'status-list' }"> Cancelar </v-btn>
-      <v-btn color="primary" :prepend-icon="mdiPlusCircle" @click.prevent="submitForm">
+      <v-btn color="secondary" :prepend-icon="mdiPlusCircle" @click.prevent="submitForm">
         Salvar
       </v-btn>
     </template>

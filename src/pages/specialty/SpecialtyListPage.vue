@@ -88,7 +88,7 @@ const deleteListItem = async (item: ISpecialty) => {
     <template #title> Lista de especialidades </template>
 
     <template #action>
-      <v-btn color="primary" :prepend-icon="mdiPlusCircle" :to="{ name: 'specialty-insert' }">
+      <v-btn color="secondary" :prepend-icon="mdiPlusCircle" :to="{ name: 'specialty-insert' }">
         Adicionar especialidade
       </v-btn>
     </template>
@@ -101,7 +101,7 @@ const deleteListItem = async (item: ISpecialty) => {
               <v-text-field v-model.trim="filterName" label="Nome" hide-details />
             </v-col>
             <v-col cols="auto" class="d-flex align-center">
-              <v-btn color="primary" type="submit">Filtrar</v-btn>
+              <v-btn color="secondary" type="submit">Filtrar</v-btn>
             </v-col>
           </v-row>
         </v-form>
