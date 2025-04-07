@@ -43,6 +43,7 @@ const handleDataTableUpdate = async ({ page: tablePage, itemsPerPage: tableItems
   loadDataTable()
 }
 
+// Seta o isLoadingList como true para mostrar mensagem de carregamento enquanto aguarda os dados da tabela pela requisição GetSpecialtyListRequest
 const loadDataTable = async () => {
   isLoadingList.value = true
   const { isError, data } = await request<GetSpecialtyListRequest, GetSpecialtyListResponse>({

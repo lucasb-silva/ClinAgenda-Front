@@ -13,6 +13,7 @@
   "vue.splitEditors.icon": true,
   "vue.updateImportsOnFileMove.enabled": true,
   "[vue]": {
-    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }
+

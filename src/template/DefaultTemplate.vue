@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useSlots } from 'vue'
 import ClinicToast from '@/components/ClinicToast.vue'
-import { mdiDoctor, mdiHome, mdiListStatus, mdiLogout } from '@mdi/js'
+import { mdiDoctor, mdiHome, mdiListStatus, mdiLogout, mdiEmoticonSickOutline } from '@mdi/js'
 
 const drawer = ref(true)
 
@@ -20,6 +20,11 @@ const menus = ref([
     title: 'Status',
     icon: mdiListStatus,
     to: { name: 'status-list' }
+  },
+  {
+    title: 'Paciente',
+    icon: mdiEmoticonSickOutline,
+    to: { name: 'patient-list' }
   }
 ])
 
@@ -86,3 +91,4 @@ const contentClass = computed(() => {
   gap: 1rem;
 }
 </style>
+

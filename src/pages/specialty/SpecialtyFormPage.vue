@@ -89,5 +89,5 @@
         </v-col>
       </v-row>
     </v-form>
-</default-template>
+  </default-template>
 </template>
