@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { DefaultTemplate } from '@/template'
-import { mdiPlusCircle, mdiTrashCan } from '@mdi/js'
+import { mdiPlusCircle, mdiTrashCan, mdiSquareEditOutline } from '@mdi/js'
 import type { IPatient, GetPatientListRequest, GetPatientListResponse } from '@/interfaces/patient'
 import request from '@/engine/httpClient'
 import { useToastStore } from '@/stores'
@@ -200,6 +200,17 @@ onMounted(() => {
                 color="error"
                 class="mr-2"
                 @click="deleteListItem(item)"
+              />
+            </template>
+          </v-tooltip>
+          <v-tooltip text="Editar paciente" location="left">
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                :icon="mdiSquareEditOutline"
+                size="small"
+                color="primary"
+                :to="{ name: 'patient-update', params: { id: item.id } }"
               />
             </template>
           </v-tooltip>

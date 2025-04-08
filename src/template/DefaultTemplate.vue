@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useSlots } from 'vue'
 import ClinicToast from '@/components/ClinicToast.vue'
-import { mdiDoctor, mdiHome, mdiListStatus, mdiLogout, mdiEmoticonSickOutline } from '@mdi/js'
+import { mdiDoctor, mdiHome, mdiListStatus, mdiLogout, mdiAccountInjuryOutline } from '@mdi/js'
 
 const drawer = ref(true)
 
@@ -23,7 +23,7 @@ const menus = ref([
   },
   {
     title: 'Paciente',
-    icon: mdiEmoticonSickOutline,
+    icon: mdiAccountInjuryOutline,
     to: { name: 'patient-list' }
   }
 ])
@@ -37,9 +37,9 @@ const contentClass = computed(() => {
 <template>
   <v-app-bar color="primary" prominent>
     <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer" />
-
+    
     <v-toolbar-title>ClinAgenda</v-toolbar-title>
-
+    
     <v-spacer />
 
     <v-btn :icon="mdiLogout" variant="text" />
