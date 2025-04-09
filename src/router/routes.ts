@@ -45,19 +45,25 @@ export const routes = [
     path: '/patient',
     name: 'patient-list',
     component: () =>
-      import(/* webpackChunkName: "specialty" */ '@/pages/patient/PatientListPage.vue')
+      import(/* webpackChunkName: "patient" */ '@/pages/patient/PatientListPage.vue')
   },
   {
     path: '/patient/insert',
     name: 'patient-insert',
     component: () =>
-      import(/* webpackChunkName: "specialty" */ '@/pages/patient/PatientFormPage.vue')
+      import(/* webpackChunkName: "patient" */ '@/pages/patient/PatientFormPage.vue')
   },
   {
     path: '/patient/update/:id',
     name: 'patient-update',
     component: () =>
-      import(/* webpackChunkName: "specialty" */ '@/pages/patient/PatientFormPage.vue')
+      import(/* webpackChunkName: "patient" */ '@/pages/patient/PatientFormPage.vue')
+  },
+  {
+    path: '/doctor',
+    name: 'doctor-list',
+    component: () =>
+      import(/* webpackChunkName: "doctor" */ '@/pages/doctor/DoctorListPage.vue')
   }
 ]
 
