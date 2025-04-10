@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useSlots } from 'vue'
 import ClinicToast from '@/components/ClinicToast.vue'
-import { mdiDoctor, mdiHome, mdiListStatus, mdiLogout, mdiAccountInjuryOutline, mdiViewList } from '@mdi/js'
+import { mdiDoctor, mdiHome, mdiListStatus, mdiLogout, mdiAccountInjuryOutline, mdiMedicalBag } from '@mdi/js'
 
 const drawer = ref(true)
 
@@ -13,7 +13,7 @@ const menus = ref([
   },
   {
     title: 'Especialidade',
-    icon: mdiViewList,
+    icon: mdiMedicalBag,
     to: { name: 'specialty-list' }
   },
   {
@@ -27,7 +27,7 @@ const menus = ref([
     to: { name: 'patient-list' }
   },
   {
-    title: 'Doutor',
+    title: 'Médico',
     icon: mdiDoctor,
     to: { name: 'doctor-list' }
   }
