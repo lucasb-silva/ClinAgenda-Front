@@ -1,5 +1,5 @@
-import type { ISpecialty } from './specialty'
 import type { IStatus } from './status'
+import type { ISpecialty } from './specialty'
 
 export interface IDoctor {
   id: number
@@ -12,8 +12,8 @@ export type GetDoctorListRequest = {
   itemsPerPage: number
   page: number
   name: IDoctor['name']
-  statusId: IStatus['id'] | null
-  specialtyId: ISpecialty['id'] | null
+  specialtyId?: ISpecialty['id'] | null
+  statusId?: IStatus['id'] | null
 }
 
 export type GetDoctorListResponse = {
@@ -23,6 +23,6 @@ export type GetDoctorListResponse = {
 
 export type DoctorForm = {
   name: IDoctor['name']
-  specialty: ISpecialty['id'][]
-  statusId: IStatus['id'] | null  
+  specialty: Array<ISpecialty['id']>
+  statusId: IStatus['id'] | null
 }

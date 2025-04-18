@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, useSlots } from 'vue'
 import ClinicToast from '@/components/ClinicToast.vue'
-import { mdiDoctor, mdiHome, mdiListStatus, mdiLogout, mdiAccountInjuryOutline, mdiMedicalBag, mdiCalendar } from '@mdi/js'
+import {
+  mdiAccountInjuryOutline,
+  mdiAccountTag,
+  mdiHome,
+  mdiLogout,
+  mdiShapeOutline,
+  mdiDoctor,
+  mdiCalendarMultiselect
+} from '@mdi/js'
 
 const drawer = ref(true)
 
@@ -12,28 +20,28 @@ const menus = ref([
     to: { name: 'dashboard' }
   },
   {
-    title: 'Especialidade',
-    icon: mdiMedicalBag,
-    to: { name: 'specialty-list' }
-  },
-  {
     title: 'Status',
-    icon: mdiListStatus,
+    icon: mdiAccountTag,
     to: { name: 'status-list' }
   },
   {
-    title: 'Paciente',
+    title: 'Especialidades',
+    icon: mdiShapeOutline,
+    to: { name: 'specialty-list' }
+  },
+  {
+    title: 'Pacientes',
     icon: mdiAccountInjuryOutline,
     to: { name: 'patient-list' }
   },
   {
-    title: 'Médico',
+    title: 'Doctor',
     icon: mdiDoctor,
     to: { name: 'doctor-list' }
   },
   {
     title: 'Agendamento',
-    icon: mdiCalendar,
+    icon: mdiCalendarMultiselect,
     to: { name: 'appointment-list' }
   }
 ])
@@ -42,6 +50,8 @@ const slots = useSlots()
 const contentClass = computed(() => {
   return slots.action || slots.title ? 'pt-4' : ''
 })
+
+const isMock = import.meta.env.VITE_USE_MOCK === 'true'
 </script>
 
 <template>
@@ -50,6 +60,11 @@ const contentClass = computed(() => {
 
     <v-toolbar-title>ClinAgenda</v-toolbar-title>
 
+    <div>
+      <v-alert v-if="isMock" color="warning" icon="$warning" density="compact">
+        MOCK ATIVADO
+      </v-alert>
+    </div>
     <v-spacer />
 
     <v-btn :icon="mdiLogout" variant="text" />
@@ -101,4 +116,3 @@ const contentClass = computed(() => {
   gap: 1rem;
 }
 </style>
-

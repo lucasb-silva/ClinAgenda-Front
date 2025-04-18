@@ -43,7 +43,6 @@ const handleDataTableUpdate = async ({ page: tablePage, itemsPerPage: tableItems
   loadDataTable()
 }
 
-// Seta o isLoadingList como true para mostrar mensagem de carregamento enquanto aguarda os dados da tabela pela requisição GetSpecialtyListRequest
 const loadDataTable = async () => {
   isLoadingList.value = true
   const { isError, data } = await request<GetSpecialtyListRequest, GetSpecialtyListResponse>({
@@ -56,11 +55,12 @@ const loadDataTable = async () => {
     }
   })
 
+  isLoadingList.value = false
+
   if (isError) return
 
   items.value = data.items
   total.value = data.total
-  isLoadingList.value = false
 }
 
 const deleteListItem = async (item: ISpecialty) => {
@@ -117,7 +117,9 @@ const deleteListItem = async (item: ISpecialty) => {
         item-value="id"
         @update:options="handleDataTableUpdate"
       >
-        <template #[`item.scheduleDuration`]="{ item }"> {{ item.scheduleDuration }} min </template>
+        <template #[`item.scheduleDuration`]="{ item }">
+          {{ item.scheduleDuration }} minutos
+        </template>
         <template #[`item.actions`]="{ item }">
           <v-tooltip text="Deletar especialidade" location="left">
             <template #activator="{ props }">

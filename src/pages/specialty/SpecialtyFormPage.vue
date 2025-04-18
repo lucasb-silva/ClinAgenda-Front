@@ -1,69 +1,71 @@
 <script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue'
-  import { DefaultTemplate } from '@/template'
-  import { mdiCancel, mdiPlusCircle } from '@mdi/js'
-  import type { SpecialtyForm } from '@/interfaces/specialty'
-  import request from '@/engine/httpClient'
-  import { useRoute } from 'vue-router'
-  import { PageMode } from '@/enum'
-  import { useToastStore } from '@/stores'
-  import router from '@/router'
+import { computed, onMounted, ref } from 'vue'
+import { DefaultTemplate } from '@/template'
+import { mdiCancel, mdiPlusCircle } from '@mdi/js'
+import type { SpecialtyForm } from '@/interfaces/specialty'
+import request from '@/engine/httpClient'
+import { useRoute } from 'vue-router'
+import { PageMode } from '@/enum'
+import { useToastStore } from '@/stores'
+import router from '@/router'
 
-  const toastStore = useToastStore()
-  const route = useRoute()
+const toastStore = useToastStore()
+const route = useRoute()
 
-  const isLoadingForm = ref<boolean>(false)
+const isLoadingForm = ref<boolean>(false)
 
-  const id = route.params.id
-  const pageMode = id ? PageMode.PAGE_UPDATE : PageMode.PAGE_INSERT
+const id = route.params.id
+const pageMode = id ? PageMode.PAGE_UPDATE : PageMode.PAGE_INSERT
 
-  const form = ref<SpecialtyForm>({
-    name: '',
-    scheduleDuration: ''
+const form = ref<SpecialtyForm>({
+  name: '',
+  scheduleDuration: ''
+})
+
+const pageTitle = computed(() => {
+  return pageMode === PageMode.PAGE_UPDATE ? 'Editar especialidade' : 'Cadastrar nova especialidade'
+})
+
+const submitForm = async () => {
+  isLoadingForm.value = true
+  const response = await request<SpecialtyForm, null>({
+    method: pageMode == PageMode.PAGE_INSERT ? 'POST' : 'PUT',
+    endpoint: pageMode == PageMode.PAGE_INSERT ? 'specialty/insert' : `specialty/update/${id}`,
+    body: form.value
   })
 
-  const pageTitle = computed(() => {
-    return pageMode === PageMode.PAGE_UPDATE ? 'Editar especialidade' : 'Cadastrar nova especialidade'
+  isLoadingForm.value = false
+
+  if (response.isError) return
+
+  toastStore.setToast({
+    type: 'success',
+    text: `Especialidade ${pageMode == PageMode.PAGE_INSERT ? 'criada' : 'alterada'} com sucesso!`
   })
 
-  const submitForm = async () => {
-    isLoadingForm.value = true
-    const response = await request<SpecialtyForm, null>({
-      method: pageMode == PageMode.PAGE_INSERT ? 'POST' : 'PUT',
-      endpoint: pageMode == PageMode.PAGE_INSERT ? 'specialty/insert' : `specialty/update/${id}`,
-      body: form.value
-    })
+  router.push({ name: 'specialty-list' })
+}
 
-    if (response.isError) return
+const loadForm = async () => {
+  if (pageMode === PageMode.PAGE_INSERT) return
 
-    toastStore.setToast({
-      type: 'success',
-      text: `Especialidade ${pageMode == PageMode.PAGE_INSERT ? 'criada' : 'alterada'} com sucesso!`
-    })
+  isLoadingForm.value = true
 
-    router.push({ name: 'specialty-list' })
-
-    isLoadingForm.value = false
-  }
-
-  const loadForm = async () => {
-    if (pageMode === PageMode.PAGE_INSERT) return
-
-    isLoadingForm.value = true
-    const specialtyFormResponse = await request<undefined, SpecialtyForm>({
-      method: 'GET',
-      endpoint: `specialty/update/${id}`
-    })
-
-    if (specialtyFormResponse?.isError) return
-
-    form.value = specialtyFormResponse.data
-    isLoadingForm.value = false
-  }
-
-  onMounted(() => {
-    loadForm()
+  const specialtyFormResponse = await request<undefined, SpecialtyForm>({
+    method: 'GET',
+    endpoint: `specialty/update/${id}`
   })
+
+  isLoadingForm.value = false
+
+  if (specialtyFormResponse?.isError) return
+
+  form.value = specialtyFormResponse.data
+}
+
+onMounted(() => {
+  loadForm()
+})
 </script>
 
 <template>
@@ -85,7 +87,7 @@
           <v-text-field v-model.trim="form.name" label="Nome" hide-details />
         </v-col>
         <v-col cols="2">
-          <v-text-field v-model.trim="form.scheduleDuration" label="Duração da consulta" hide-details />
+          <v-text-field v-model.trim="form.scheduleDuration" label="Duração" hide-details />
         </v-col>
       </v-row>
     </v-form>

@@ -1,38 +1,33 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { DefaultTemplate } from '@/template'
-import { mdiPlusCircle, mdiTrashCan, mdiSquareEditOutline } from '@mdi/js'
-import type { IDoctor, GetDoctorListResponse } from '@/interfaces/doctor'
-import type { GetSpecialtyListResponse, ISpecialty } from '@/interfaces/specialty'
-import type { GetPatientListResponse, IPatient } from '@/interfaces/patient'
+import { mdiPlusCircle, mdiSquareEditOutline, mdiTrashCan } from '@mdi/js'
 import type {
+  IAppointment,
   GetAppointmentListRequest,
-  GetAppointmentListResponse,
-  IAppointment
+  GetAppointmentListResponse
 } from '@/interfaces/appointment'
-import { useToastStore } from '@/stores'
+import type { GetSpecialtyListResponse, ISpecialty } from '@/interfaces/specialty'
+import type { IPatient } from '@/interfaces/patient'
+import type { IDoctor } from '@/interfaces/doctor'
 import request from '@/engine/httpClient'
+import { useToastStore } from '@/stores'
+import { maskDocumentNumber } from '@/utils'
 
 const toastStore = useToastStore()
 
 const isLoadingList = ref<boolean>(false)
 const isLoadingFilter = ref<boolean>(false)
 
-const filterSpecialtyId = ref<ISpecialty['id'] | null>(null)
-// const filterDoctorId = ref<IDoctor['id'] | null>(null)
-// const filterPatientId = ref<IPatient['id'] | null>(null)
-
 const filterDoctorName = ref<IDoctor['name']>('')
 const filterPatientName = ref<IPatient['name']>('')
+const filterSpecialtyId = ref<ISpecialty['id'] | null>(null)
 
 const itemsPerPage = ref<number>(10)
 const total = ref<number>(0)
 const page = ref<number>(1)
 const items = ref<IAppointment[]>([])
-
 const specialtyItems = ref<ISpecialty[]>([])
-const doctorItems = ref<IDoctor[]>([])
-const patientItems = ref<IPatient[]>([])
 
 const headers = [
   {
@@ -42,11 +37,11 @@ const headers = [
     width: 0,
     cellProps: { class: 'text-no-wrap' }
   },
-  { title: 'Paciente', key: 'patient', sortable: false },
-  { title: 'CPF', key: 'documentNumber', sortable: false },
-  { title: 'Médico', key: 'doctor', sortable: false },
+  { title: 'Paciente', key: 'patient.name', sortable: false },
+  { title: 'CPF', key: 'patient.documentNumber', sortable: false },
+  { title: 'Profissional', key: 'doctor.name', sortable: false },
   { title: 'Especialidade', key: 'specialty', sortable: false },
-  { title: 'Horario da consulta', key: 'appointmentDate', sortable: false },
+  { title: 'Horário da consulta', key: 'appointmentDate', sortable: false },
   {
     title: 'Ações',
     key: 'actions',
@@ -62,7 +57,6 @@ const handleDataTableUpdate = async ({ page: tablePage, itemsPerPage: tableItems
   loadDataTable()
 }
 
-// Seta o isLoadingList como true para mostrar mensagem de carregamento enquanto aguarda os dados da tabela pela requisição GetDoctorListRequest
 const loadDataTable = async () => {
   isLoadingList.value = true
   const { isError, data } = await request<GetAppointmentListRequest, GetAppointmentListResponse>({
@@ -71,60 +65,39 @@ const loadDataTable = async () => {
     body: {
       itemsPerPage: itemsPerPage.value,
       page: page.value,
-      patientName: filterPatientName.value,
       doctorName: filterDoctorName.value,
+      patientName: filterPatientName.value,
       specialtyId: filterSpecialtyId.value
     }
   })
+
+  isLoadingList.value = false
 
   if (isError) return
 
   items.value = data.items
   total.value = data.total
-  isLoadingList.value = false
 }
 
 const loadFilters = async () => {
   isLoadingFilter.value = true
 
-  const doctorRequest = request<undefined, GetDoctorListResponse>({
-    method: 'GET',
-    endpoint: 'doctor/list'
-  })
-
-  const requests: Promise<any>[] = [doctorRequest]
-
-  const specialtyRequest = request<undefined, GetSpecialtyListResponse>({
+  const specialtyResponse = await request<undefined, GetSpecialtyListResponse>({
     method: 'GET',
     endpoint: 'specialty/list'
   })
 
-  requests.push(specialtyRequest)
-
-  const patientRequest = request<undefined, GetPatientListResponse>({
-    method: 'GET',
-    endpoint: 'patient/list'
-  })
-
-  requests.push(patientRequest)
-
-  try {
-    const [doctorResponse, specialtyResponse, patientResponse] = await Promise.all(requests)
-
-    if (doctorResponse.isError || specialtyResponse.isError || patientResponse.isError) return
-
-    doctorItems.value = doctorResponse.data.items
-    specialtyItems.value = specialtyResponse.data.items
-    patientItems.value = patientResponse.data.items
-  } catch (e) {
-    console.error('Erro ao buscar items do filtro', e)
-  }
-
   isLoadingFilter.value = false
+
+  if (specialtyResponse.isError) return
+
+  specialtyItems.value = specialtyResponse.data.items
 }
 
 const deleteListItem = async (item: IAppointment) => {
-  const shouldDelete = confirm(`Deseja mesmo deletar consulta do dia ${item.appointmentDate}?`)
+  const shouldDelete = confirm(
+    `Deseja mesmo deletar agendamento? \n\nHorário: ${item.appointmentDate} \nPaciente: ${item.patient.name}\nAgendamento: ${item.doctor.name}`
+  )
 
   if (!shouldDelete) return
 
@@ -150,11 +123,11 @@ onMounted(() => {
 
 <template>
   <default-template>
-    <template #title> Agendamentos cadastrados </template>
+    <template #title> Lista de agendamentos </template>
 
     <template #action>
-      <v-btn color="secondary" :prepend-icon="mdiPlusCircle" :to="{ name: 'doctor-insert' }">
-        Adicionar consulta
+      <v-btn color="secondary" :prepend-icon="mdiPlusCircle" :to="{ name: 'appointment-insert' }">
+        Adicionar agendamento
       </v-btn>
     </template>
 
@@ -163,7 +136,7 @@ onMounted(() => {
         <v-form @submit.prevent="loadDataTable">
           <v-row>
             <v-col>
-              <v-text-field v-model.trim="filterDoctorName" label="Médico" hide-details />
+              <v-text-field v-model.trim="filterDoctorName" label="Profissional" hide-details />
             </v-col>
             <v-col>
               <v-text-field v-model.trim="filterPatientName" label="Paciente" hide-details />
@@ -178,6 +151,7 @@ onMounted(() => {
                 item-title="name"
                 clearable
                 hide-details
+                @click:clear="loadDataTable"
               />
             </v-col>
             <v-col cols="auto" class="d-flex align-center">
@@ -196,20 +170,16 @@ onMounted(() => {
         item-value="id"
         @update:options="handleDataTableUpdate"
       >
-      <template #[`item.patient`]="{ item }">
-          {{ item.patient.name }} 
-        </template>
-        <template #[`item.documentNumber`]="{ item }">
-           {{ item.patient.documentNumber }}
-        </template>
-        <template #[`item.doctor`]="{ item }">
-           {{ item.doctor.name }}
+        <template #[`item.patient.documentNumber`]="{ item }">
+          {{ maskDocumentNumber(item.patient.documentNumber) }}
         </template>
         <template #[`item.specialty`]="{ item }">
-          <v-chip> {{ item.specialty.name }} </v-chip>
+          <v-chip>
+            {{ item.specialty.name }}
+          </v-chip>
         </template>
         <template #[`item.actions`]="{ item }">
-          <v-tooltip text="Deletar médico" location="left">
+          <v-tooltip text="Deletar agendamento" location="left">
             <template #activator="{ props }">
               <v-btn
                 v-bind="props"
@@ -221,14 +191,14 @@ onMounted(() => {
               />
             </template>
           </v-tooltip>
-          <v-tooltip text="Editar médico" location="left">
+          <v-tooltip text="Editar agendamento" location="left">
             <template #activator="{ props }">
               <v-btn
                 v-bind="props"
                 :icon="mdiSquareEditOutline"
                 size="small"
                 color="primary"
-                :to="{ name: 'doctor-update', params: { id: item.id } }"
+                :to="{ name: 'appointment-update', params: { id: item.id } }"
               />
             </template>
           </v-tooltip>

@@ -1,18 +1,16 @@
 <script setup lang="ts">
-import JSConfetti from 'js-confetti'
 import { computed, onMounted, ref } from 'vue'
 import { DefaultTemplate } from '@/template'
 import { mdiCancel, mdiPlusCircle } from '@mdi/js'
 import type { DoctorForm } from '@/interfaces/doctor'
-import type { IStatus, GetStatusListResponse } from '@/interfaces/status'
 import type { GetSpecialtyListResponse, ISpecialty } from '@/interfaces/specialty'
+import type { IStatus, GetStatusListResponse } from '@/interfaces/status'
 import request from '@/engine/httpClient'
 import { useRoute } from 'vue-router'
 import { PageMode } from '@/enum'
 import { useToastStore } from '@/stores'
 import router from '@/router'
 
-const confetti = new JSConfetti()
 const toastStore = useToastStore()
 const route = useRoute()
 
@@ -26,37 +24,31 @@ const form = ref<DoctorForm>({
   specialty: [],
   statusId: null
 })
-const statusItems = ref<IStatus[]>([])
 const specialtyItems = ref<ISpecialty[]>([])
+const statusItems = ref<IStatus[]>([])
 
 const pageTitle = computed(() => {
-  return pageMode === PageMode.PAGE_UPDATE ? 'Editar médico' : 'Cadastrar novo médico'
+  return pageMode === PageMode.PAGE_UPDATE ? 'Editar profissional' : 'Cadastrar novo profissional'
 })
 
 const submitForm = async () => {
-  try {
-    isLoadingForm.value = true
-    const response = await request<DoctorForm, null>({
-      method: pageMode == PageMode.PAGE_INSERT ? 'POST' : 'PUT',
-      endpoint: pageMode == PageMode.PAGE_INSERT ? 'doctor/insert' : `doctor/update/${id}`,
-      body: form.value
-    })
+  isLoadingForm.value = true
+  const response = await request<DoctorForm, null>({
+    method: pageMode == PageMode.PAGE_INSERT ? 'POST' : 'PUT',
+    endpoint: pageMode == PageMode.PAGE_INSERT ? 'doctor/insert' : `doctor/update/${id}`,
+    body: form.value
+  })
 
-    if (response.isError) return
+  isLoadingForm.value = false
 
-    toastStore.setToast({
-      type: 'success',
-      text: `Profissional ${pageMode == PageMode.PAGE_INSERT ? 'criado' : 'alterado'} com sucesso!`
-    })
+  if (response.isError) return
 
-    confetti.addConfetti()
+  toastStore.setToast({
+    type: 'success',
+    text: `Profissional ${pageMode == PageMode.PAGE_INSERT ? 'criado' : 'alterado'} com sucesso!`
+  })
 
-    router.push({ name: 'doctor-list' })
-
-    isLoadingForm.value = false
-  } catch (e) {
-    console.error('Erro ao salvar formulário', e)
-  }
+  router.push({ name: 'doctor-list' })
 }
 
 const loadForm = async () => {
@@ -79,24 +71,26 @@ const loadForm = async () => {
       method: 'GET',
       endpoint: `doctor/listById/${id}`
     })
+
     requests.push(doctorFormRequest)
   }
 
-  try {
-    const [specialtyResponse, statusResponse, doctorFormResponse] = await Promise.all(requests)
+  const [specialtyResponse, statusResponse, doctorFormResponse] = await Promise.all(requests)
 
-    if (statusResponse.isError || specialtyResponse.isError || doctorFormResponse?.isError) return
+  isLoadingForm.value = false
 
-    statusItems.value = statusResponse.data.items
-    specialtyItems.value = specialtyResponse.data.items
+  if (specialtyResponse.isError || statusResponse.isError || doctorFormResponse?.isError) return
 
-    if (pageMode === PageMode.PAGE_UPDATE) {
-      form.value = doctorFormResponse.data
-    }
-  } catch (e) {
-    console.error('Erro ao buscar items do filtro', e)
-  } finally {
-    isLoadingForm.value = false
+  specialtyItems.value = specialtyResponse.data.items
+  statusItems.value = statusResponse.data.items
+
+  if (pageMode === PageMode.PAGE_UPDATE) {
+    form.value = doctorFormResponse.data
+
+    form.value.statusId = doctorFormResponse.data.status.id
+    form.value.specialty = doctorFormResponse.data.specialty.map(
+      (specialty: ISpecialty) => specialty.id
+    )
   }
 }
 
@@ -106,21 +100,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <DefaultTemplate>
+  <default-template>
     <template #title>
       {{ pageTitle }}
     </template>
 
     <template #action>
       <v-btn :prepend-icon="mdiCancel" :to="{ name: 'doctor-list' }"> Cancelar </v-btn>
-      <v-btn color="primary" :prepend-icon="mdiPlusCircle" @click.prevent="submitForm">
+      <v-btn color="secondary" :prepend-icon="mdiPlusCircle" @click.prevent="submitForm">
         Salvar
       </v-btn>
     </template>
 
     <v-form :disabled="isLoadingForm" @submit.prevent="submitForm">
       <v-row>
-        <v-col cols="4">
+        <v-col cols="6">
           <v-text-field v-model.trim="form.name" label="Nome" hide-details />
         </v-col>
         <v-col cols="2">
@@ -140,7 +134,7 @@ onMounted(() => {
         <v-col>
           <v-label>Especialidades</v-label>
           <v-checkbox
-            v-for="specialty of specialtyItems"
+            v-for="specialty in specialtyItems"
             :key="specialty.id"
             v-model="form.specialty"
             :label="specialty.name"
@@ -149,5 +143,5 @@ onMounted(() => {
         </v-col>
       </v-row>
     </v-form>
-  </DefaultTemplate>
+  </default-template>
 </template>

@@ -1,20 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { DefaultTemplate } from '@/template'
-import { mdiPlusCircle, mdiTrashCan, mdiSquareEditOutline } from '@mdi/js'
+import { mdiPlusCircle, mdiSquareEditOutline, mdiTrashCan } from '@mdi/js'
 import type { IPatient, GetPatientListRequest, GetPatientListResponse } from '@/interfaces/patient'
+import type { IStatus, GetStatusListResponse } from '@/interfaces/status'
 import request from '@/engine/httpClient'
 import { useToastStore } from '@/stores'
-import type { GetStatusListResponse, IStatus } from '@/interfaces/status'
 import { vMaska } from 'maska/vue'
-import {
-  clearMask,
-  dateFormat,
-  DateFormatEnum,
-  documentNumberMask,
-  maskDocumentNumber,
-  maskPhoneNumber
-} from '@/utils'
+import { clearMask, documentNumberMask, maskDocumentNumber, maskPhoneNumber } from '@/utils'
 
 const toastStore = useToastStore()
 
@@ -42,7 +35,7 @@ const headers = [
   { title: 'Nome', key: 'name', sortable: false },
   { title: 'CPF', key: 'documentNumber', sortable: false },
   { title: 'Telefone', key: 'phoneNumber', sortable: false },
-  { title: 'Data de Nascimento', key: 'birthDate', sortable: false },
+  { title: 'Data Nascimento', key: 'birthDate', sortable: false },
   { title: 'Status', key: 'status', sortable: false },
   {
     title: 'Ações',
@@ -59,26 +52,6 @@ const handleDataTableUpdate = async ({ page: tablePage, itemsPerPage: tableItems
   loadDataTable()
 }
 
-const loadFilters = async () => {
-  isLoadingFilter.value = true
-
-  try {
-    const statusResponse = await request<undefined, GetStatusListResponse>({
-      method: 'GET',
-      endpoint: 'status/list'
-    })
-
-    if (statusResponse.isError) return
-
-    statusItems.value = statusResponse.data.items
-  } catch (e) {
-    console.error('Erro ao buscar items do filtro', e)
-  }
-
-  isLoadingFilter.value = false
-}
-
-// Seta o isLoadingList como true para mostrar mensagem de carregamento enquanto aguarda os dados da tabela pela requisição GetPatientListRequest
 const loadDataTable = async () => {
   isLoadingList.value = true
   const { isError, data } = await request<GetPatientListRequest, GetPatientListResponse>({
@@ -93,11 +66,27 @@ const loadDataTable = async () => {
     }
   })
 
+  isLoadingList.value = false
+
   if (isError) return
 
   items.value = data.items
   total.value = data.total
-  isLoadingList.value = false
+}
+
+const loadFilters = async () => {
+  isLoadingFilter.value = true
+
+  const statusResponse = await request<undefined, GetStatusListResponse>({
+    method: 'GET',
+    endpoint: 'status/list'
+  })
+
+  isLoadingFilter.value = false
+
+  if (statusResponse.isError) return
+
+  statusItems.value = statusResponse.data.items
 }
 
 const deleteListItem = async (item: IPatient) => {
@@ -114,7 +103,7 @@ const deleteListItem = async (item: IPatient) => {
 
   toastStore.setToast({
     type: 'success',
-    text: 'Paciente deletada com sucesso!'
+    text: 'Paciente deletado com sucesso!'
   })
 
   loadDataTable()
@@ -168,7 +157,6 @@ onMounted(() => {
           </v-row>
         </v-form>
       </v-sheet>
-
       <v-data-table-server
         v-model:items-per-page="itemsPerPage"
         :headers="headers"
@@ -179,16 +167,15 @@ onMounted(() => {
         @update:options="handleDataTableUpdate"
       >
         <template #[`item.status`]="{ item }">
-          <v-chip> {{ item.status.name }} oi </v-chip>
+          <v-chip>
+            {{ item.status.name }}
+          </v-chip>
         </template>
         <template #[`item.documentNumber`]="{ item }">
           <div>{{ maskDocumentNumber(item.documentNumber) }}</div>
         </template>
         <template #[`item.phoneNumber`]="{ item }">
           <div>{{ maskPhoneNumber(item.phoneNumber) }}</div>
-        </template>
-        <template #[`item.birthDate`]="{ item }">
-          <div>{{ dateFormat(item.birthDate, DateFormatEnum.FullDate.value) }}</div>
         </template>
         <template #[`item.actions`]="{ item }">
           <v-tooltip text="Deletar paciente" location="left">

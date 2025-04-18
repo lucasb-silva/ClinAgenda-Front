@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import JSConfetti from 'js-confetti'
 import { computed, onMounted, ref } from 'vue'
 import { DefaultTemplate } from '@/template'
 import { mdiCancel, mdiPlusCircle } from '@mdi/js'
-import type { PatientForm } from '@/interfaces/patient'
+import type { GetPatientResponse, PatientForm } from '@/interfaces/patient'
 import type { IStatus, GetStatusListResponse } from '@/interfaces/status'
 import request from '@/engine/httpClient'
 import { useRoute } from 'vue-router'
@@ -20,7 +19,6 @@ import {
   phoneNumberMask
 } from '@/utils'
 
-const confetti = new JSConfetti()
 const toastStore = useToastStore()
 const route = useRoute()
 
@@ -62,6 +60,8 @@ const submitForm = async () => {
     body
   })
 
+  isLoadingForm.value = false
+
   if (response.isError) return
 
   toastStore.setToast({
@@ -69,10 +69,7 @@ const submitForm = async () => {
     text: `Paciente ${pageMode == PageMode.PAGE_INSERT ? 'criado' : 'alterado'} com sucesso!`
   })
 
-  confetti.addConfetti()
-
   router.push({ name: 'patient-list' })
-  isLoadingForm.value = false
 }
 
 const loadForm = async () => {
@@ -86,7 +83,7 @@ const loadForm = async () => {
   const requests: Promise<any>[] = [statusRequest]
 
   if (pageMode === PageMode.PAGE_UPDATE) {
-    const patientFormRequest = request<undefined, PatientForm>({
+    const patientFormRequest = request<undefined, GetPatientResponse>({
       method: 'GET',
       endpoint: `patient/listById/${id}`
     })
@@ -96,15 +93,16 @@ const loadForm = async () => {
 
   const [statusResponse, patientFormResponse] = await Promise.all(requests)
 
+  isLoadingForm.value = false
+
   if (statusResponse.isError || patientFormResponse?.isError) return
 
   statusItems.value = statusResponse.data.items
 
   if (pageMode === PageMode.PAGE_UPDATE) {
     form.value = patientFormResponse.data
+    form.value.statusId = patientFormResponse.data.id
   }
-
-  isLoadingForm.value = false
 }
 
 onMounted(() => {
@@ -113,14 +111,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <DefaultTemplate>
+  <default-template>
     <template #title>
       {{ pageTitle }}
     </template>
 
     <template #action>
       <v-btn :prepend-icon="mdiCancel" :to="{ name: 'patient-list' }"> Cancelar </v-btn>
-      <v-btn color="primary" :prepend-icon="mdiPlusCircle" @click.prevent="submitForm">
+      <v-btn color="secondary" :prepend-icon="mdiPlusCircle" @click.prevent="submitForm">
         Salvar
       </v-btn>
     </template>
@@ -170,5 +168,5 @@ onMounted(() => {
         </v-col>
       </v-row>
     </v-form>
-  </DefaultTemplate>
+  </default-template>
 </template>

@@ -1,6 +1,6 @@
+import type { ISpecialty } from './specialty'
 import type { IDoctor } from './doctor'
 import type { IPatient } from './patient'
-import type { ISpecialty } from './specialty'
 
 export interface IAppointment {
   id: number
@@ -14,8 +14,8 @@ export interface IAppointment {
 export type GetAppointmentListRequest = {
   itemsPerPage: number
   page: number
-  patientName: IPatient['name'] | null
-  doctorName: IDoctor['name'] | null
+  doctorName: IDoctor['name']
+  patientName: IPatient['name']
   specialtyId: ISpecialty['id'] | null
 }
 
@@ -25,9 +25,9 @@ export type GetAppointmentListResponse = {
 }
 
 export type AppointmentForm = {
-  patientId: IPatient['id']
-  doctorId: IDoctor['id']
-  specialtyId: ISpecialty['id'][]
+  patientId: IPatient['id'] | null
+  doctorId: IDoctor['id'] | null
+  specialtyId: ISpecialty['id'] | null
   appointmentDate: IAppointment['appointmentDate']
   observation: IAppointment['observation']
 }

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { DefaultTemplate } from '@/template'
-import { mdiPlusCircle, mdiTrashCan, mdiSquareEditOutline } from '@mdi/js'
+import { mdiPlusCircle, mdiSquareEditOutline, mdiTrashCan } from '@mdi/js'
 import type { IDoctor, GetDoctorListRequest, GetDoctorListResponse } from '@/interfaces/doctor'
-import request from '@/engine/httpClient'
-import type { GetStatusListResponse, IStatus } from '@/interfaces/status'
 import type { GetSpecialtyListResponse, ISpecialty } from '@/interfaces/specialty'
+import type { IStatus, GetStatusListResponse } from '@/interfaces/status'
+import request from '@/engine/httpClient'
 import { useToastStore } from '@/stores'
 
 const toastStore = useToastStore()
@@ -33,7 +33,7 @@ const headers = [
     cellProps: { class: 'text-no-wrap' }
   },
   { title: 'Nome', key: 'name', sortable: false },
-  { title: 'Especialidade', key: 'specialty', sortable: false },
+  { title: 'Especialidades', key: 'specialty', sortable: false },
   { title: 'Status', key: 'status', sortable: false },
   {
     title: 'Ações',
@@ -44,13 +44,12 @@ const headers = [
   }
 ]
 
-const handleDataTableUpdate = async ({ page: tablePage, itemsPerPage: tableItemsPerPage }: any) => {
-  page.value = tablePage
-  itemsPerPage.value = tableItemsPerPage
+const handleDataTableUpdate = async (tableOptions: any) => {
+  page.value = tableOptions.page
+  itemsPerPage.value = tableOptions.itemsPerPage
   loadDataTable()
 }
 
-// Seta o isLoadingList como true para mostrar mensagem de carregamento enquanto aguarda os dados da tabela pela requisição GetDoctorListRequest
 const loadDataTable = async () => {
   isLoadingList.value = true
   const { isError, data } = await request<GetDoctorListRequest, GetDoctorListResponse>({
@@ -60,47 +59,41 @@ const loadDataTable = async () => {
       itemsPerPage: itemsPerPage.value,
       page: page.value,
       name: filterName.value,
-      statusId: filterStatusId.value,
-      specialtyId: filterSpecialtyId.value
+      specialtyId: filterSpecialtyId.value,
+      statusId: filterStatusId.value
     }
   })
+
+  isLoadingList.value = false
 
   if (isError) return
 
   items.value = data.items
   total.value = data.total
-  isLoadingList.value = false
 }
 
 const loadFilters = async () => {
   isLoadingFilter.value = true
-
-  const statusRequest = request<undefined, GetStatusListResponse>({
-    method: 'GET',
-    endpoint: 'status/list'
-  })
-
-  const requests: Promise<any>[] = [statusRequest]
 
   const specialtyRequest = request<undefined, GetSpecialtyListResponse>({
     method: 'GET',
     endpoint: 'specialty/list'
   })
 
-  requests.push(specialtyRequest)
+  const statusRequest = request<undefined, GetStatusListResponse>({
+    method: 'GET',
+    endpoint: 'status/list'
+  })
 
-  try {
-    const [statusResponse, specialtyResponse] = await Promise.all(requests)
-
-    if (statusResponse.isError || specialtyResponse.isError) return
-
-    statusItems.value = statusResponse.data.items
-    specialtyItems.value = specialtyResponse.data.items
-  } catch (e) {
-    console.error('Erro ao buscar items do filtro', e)
-  }
+  const [specialtyResponse, statusResponse] = await Promise.all([specialtyRequest, statusRequest])
 
   isLoadingFilter.value = false
+
+  if (specialtyResponse.isError || statusResponse.isError) return
+
+  console.log('- specialtyResponse', specialtyResponse)
+  specialtyItems.value = specialtyResponse.data.items
+  statusItems.value = statusResponse.data.items
 }
 
 const deleteListItem = async (item: IDoctor) => {
@@ -130,11 +123,11 @@ onMounted(() => {
 
 <template>
   <default-template>
-    <template #title> Lista de médicos </template>
+    <template #title> Lista de profissionais </template>
 
     <template #action>
       <v-btn color="secondary" :prepend-icon="mdiPlusCircle" :to="{ name: 'doctor-insert' }">
-        Adicionar médico
+        Adicionar profissional
       </v-btn>
     </template>
 
@@ -191,10 +184,12 @@ onMounted(() => {
           </v-chip>
         </template>
         <template #[`item.status`]="{ item }">
-          <v-chip> {{ item.status.name }} </v-chip>
+          <v-chip>
+            {{ item.status.name }}
+          </v-chip>
         </template>
         <template #[`item.actions`]="{ item }">
-          <v-tooltip text="Deletar médico" location="left">
+          <v-tooltip text="Deletar profissional" location="left">
             <template #activator="{ props }">
               <v-btn
                 v-bind="props"
@@ -206,7 +201,7 @@ onMounted(() => {
               />
             </template>
           </v-tooltip>
-          <v-tooltip text="Editar médico" location="left">
+          <v-tooltip text="Editar profissional" location="left">
             <template #activator="{ props }">
               <v-btn
                 v-bind="props"
